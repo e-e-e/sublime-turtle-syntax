@@ -1,0 +1,97 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+name: Turtle
+file_extensions:
+  - ttl
+scope: source.ttl
+
+contexts:
+  # The prototype context is prepended to all contexts but those setting
+  # meta_include_prototype: false.
+
+  main:
+    # The main context is the initial starting point of our syntax.
+    # Include other contexts from here (or specify them directly).
+    - include: prefix
+    - include: nodes
+    - include: literals
+    - include: punctuation
+    - include: keywords
+    - include: comments
+
+  keywords:
+    - match: '@(\w+)\b'
+      scope:  keyword.control.ttl
+    - match: '\ba\b'
+      scope:  keyword.control.ttl
+
+  prefix:
+    - match: '\b\S+:'
+      scope: entity.name.class.ttl;
+      push: prefix_name
+
+  prefix_name:
+    - meta_include_prototype: false
+    - meta_scope: variable.language.ttl
+    - match: '\s'
+      pop: true
+
+  punctuation:
+    - match: '\b\.\b'
+      scope: punctuation.terminator.ttl
+    - match: '\b(,|;)\b'
+      scope: punctuation.separator.sequence.ttl
+
+  nodes:
+    # Keywords are if, else for and while.
+    # Note that blackslashes don't need to be escaped within single quoted
+    # strings in YAML. When using single quoted strings, only single quotes
+    # need to be escaped: this is done by using two single quotes next to each
+    # other.
+    - match: '<'
+      scope: punctuation.section.block.start.ttl
+      push: inside_nodes
+    - match: '>'
+      scope: invalid.illegal.stray-bracket-end
+
+  inside_nodes:
+    - meta_include_prototype: false
+    - meta_scope: constant.language.ttl
+    - match: '\s'
+      scope: invalid.illegal
+      pop: true
+    - match: '>'
+      scope: punctuation.section.block.end.ttl
+      pop: true
+
+  numbers:
+    - match: '\b(-)?[0-9.]+\b'
+      scope: constant.numeric.ttl
+
+  comments:
+    # Comments begin with a '//' and finish at the end of the line
+    - match: '#'
+      scope: punctuation.definition.comment.ttl
+      push: line_comment
+
+  line_comment:
+    - meta_scope: comment.line.ttl
+    - match: '$'
+      pop: true
+
+  literals:
+    # Strings begin and end with quotes, and use backslashes as an escape
+    # character.
+    - match: '"'
+      scope: punctuation.definition.string.begin.ttl
+      push: inside_literals
+
+  inside_literals:
+    - meta_include_prototype: false
+    - meta_scope: string.quoted.double.ttl
+    - match: '\.'
+      scope: constant.character.escape.ttl
+    - match: '"'
+      scope: punctuation.definition.string.end.ttl
+      pop: true
